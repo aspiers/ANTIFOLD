@@ -1,0 +1,62 @@
+#!/bin/bash
+
+STOW_TARGET=$HOME
+ANTIFOLD_ROOT=$HOME/.cfg/ANTIFOLD
+
+me=`basename $0`
+
+usage () {
+    # Call as: usage [EXITCODE] [USAGE MESSAGE]
+    exit_code=1
+    if [[ "$1" == [0-9] ]]; then
+        exit_code="$1"
+        shift
+    fi
+    if [ -n "$1" ]; then
+        echo "$*" >&2
+        echo
+    fi
+
+    cat <<EOF >&2
+Usage: $me DIR [DIR ...]
+EOF
+    exit "$exit_code"
+}
+
+if [ "$1" == '-h' ] || [ "$1" == '--help' ]; then
+    usage 0
+fi
+
+if [ $# = 0 ]; then
+    usage
+fi
+
+unfold_dir () {
+    [[ "$dir" == /* ]] || dir="`pwd`/$dir"
+
+    if [ -e "$dir/.no-stow-folding" ]; then
+        echo "$dir already unfolded"
+        return
+    fi
+
+    if ! [[ "$dir" == "$STOW_TARGET/"* ]]; then
+        echo "$dir wasn't prefixed with $STOW_TARGET/ - aborting." >&2
+        exit 1
+    fi
+
+    dir="${dir#$STOW_TARGET/}"
+
+    echo "Unfolding $dir under $STOW_TARGET/ ..."
+
+    mkdir -p "$ANTIFOLD_ROOT/$dir"
+    touch "$ANTIFOLD_ROOT/$dir/.no-stow-folding"
+    cfgctl ANTIFOLD
+}
+
+for dir in "$@"; do
+    unfold_dir "$dir"
+done
+
+cd ~/.cfg/ANTIFOLD
+echo "Don't forget to commit changes:"
+cvsq
