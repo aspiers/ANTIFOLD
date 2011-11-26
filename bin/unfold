@@ -1,7 +1,9 @@
 #!/bin/bash
 
 STOW_TARGET=$HOME
-ANTIFOLD_ROOT=$HOME/.cfg/ANTIFOLD
+ANTIFOLD_ROOT=$HOME/.GIT/adamspiers.org/ANTIFOLD
+STOW_DIR=$HOME/.STOW
+GIT_DIR=$HOME/.GIT
 
 me=`basename $0`
 
@@ -19,6 +21,9 @@ usage () {
 
     cat <<EOF >&2
 Usage: $me DIR [DIR ...]
+Relative DIRs are treated as relative to cwd.
+DIRs should be under the stow target ($STOW_TARGET)
+not the stow directory or a source package.
 EOF
     exit "$exit_code"
 }
@@ -32,31 +37,61 @@ if [ $# = 0 ]; then
 fi
 
 unfold_dir () {
-    [[ "$dir" == /* ]] || dir="`pwd`/$dir"
-
-    if [ -e "$dir/.no-stow-folding" ]; then
-        echo "$dir already unfolded"
-        return
+    path="$dir"
+    if ! [[ "$path" == /* ]]; then
+        path="`pwd`/$dir"
     fi
 
-    if ! [[ "$dir" == "$STOW_TARGET/"* ]]; then
-        echo "$dir wasn't prefixed with $STOW_TARGET/ - aborting." >&2
+    if ! [[ "$path" == "$STOW_TARGET/"* ]]; then
+        echo "$path wasn't prefixed with $STOW_TARGET/ - aborting." >&2
         exit 1
     fi
 
-    dir="${dir#$STOW_TARGET/}"
+    if [[ "$path" == "$STOW_DIR/"* ]]; then
+        echo "Run from stow target directory, not stow directory." >&2
+        exit 1
+    fi
 
-    echo "Unfolding $dir under $STOW_TARGET/ ..."
+    if [[ "$path" == "$GIT_DIR/"* ]]; then
+        echo "Run from stow target directory, not git repository." >&2
+        exit 1
+    fi
 
-    mkdir -p "$ANTIFOLD_ROOT/$dir"
-    touch "$ANTIFOLD_ROOT/$dir/.no-stow-folding"
-    cfgctl ANTIFOLD
+    if [ -e "$path" ] && ! [ -d "$path" ]; then
+        echo "$path exists but is not a directory" >&2
+        exit 1
+    fi
+
+    if [ -e "$path/.no-stow-folding" ]; then
+        echo "$path already unfolded"
+        return
+    fi
+
+    relpath="${path#$STOW_TARGET/}"
+
+    echo "Unfolding $relpath under $STOW_TARGET/ ..."
+
+    cd "$ANTIFOLD_ROOT"
+    mkdir -p "$relpath"
+    touch "$relpath/.no-stow-folding"
+    git add "$relpath/.no-stow-folding"
+
+    cd
+    mr -r ANTIFOLD stow
 }
+
+set -e
 
 for dir in "$@"; do
     unfold_dir "$dir"
 done
 
-cd ~/.cfg/ANTIFOLD
-echo "Don't forget to commit changes:"
-cvsq
+echo
+echo "Now commit your changes ..."
+echo
+
+cd "$ANTIFOLD_ROOT"
+git gui &
+
+#git commit -m"Unfolded $relpath"
+#mr -r ANTIFOLD status
