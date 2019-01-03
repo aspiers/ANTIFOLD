@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Add a new path to ANTIFOLD for which Stow folded should be
+# prevented.
 
 STOW_TARGET=$HOME
 ANTIFOLD_ROOT=$HOME/.GIT/adamspiers.org/ANTIFOLD
@@ -21,9 +24,15 @@ usage () {
 
     cat <<EOF >&2
 Usage: $me DIR [DIR ...]
+
 Relative DIRs are treated as relative to cwd.
 DIRs should be under the stow target ($STOW_TARGET)
 not the stow directory or a source package.
+
+Examples:
+
+unfold ~/include
+cd ~/lib && unfold python ruby
 EOF
     exit "$exit_code"
 }
