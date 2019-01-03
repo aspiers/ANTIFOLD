@@ -20,8 +20,22 @@ simply places an empty `.no-stow-folding` file in each directory where
 I don't want folding to be used.  Then I can simply stow this package
 and it will achieve the desired effect.
 
-`unfold`
----------
+Weakness
+--------
+
+This repository suffers from the same weakness as any other other:
+when it is the only Stow package "owning" a directory, tree folding
+will point to the package tree for this repository.  So files could
+accidentally end up in this package tree, although this is arguably
+a better situation since at least then they all end up in the same
+place, and are clearly visible by running `git status` on this repository.
+
+Due to this risk it is recommended to stow all packages which share
+directories with this repository as soon as possible.
+
+
+`unfold` utility
+------------------
 
 [`bin/unfold`](bin/unfold) is a script which makes it easy to add new
 paths to this collection of directories for which folding is
