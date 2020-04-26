@@ -20,6 +20,12 @@ simply places an empty `.no-stow-folding` file in each directory where
 I don't want folding to be used.  Then I can simply stow this package
 and it will achieve the desired effect.
 
+Notice that while Stow would achieve the desired effect even with
+empty directories, git does not track directories, so the
+`.no-stow-folding` files are required in order to ensure the presence
+of these directories when checking out this repository via `git
+clone`.
+
 Weakness
 --------
 
@@ -30,8 +36,10 @@ accidentally end up in this package tree, although this is arguably
 a better situation since at least then they all end up in the same
 place, and are clearly visible by running `git status` on this repository.
 
-Due to this risk it is recommended to stow all packages which share
-directories with this repository as soon as possible.
+However this risk can be mitigated by stowing this package with the
+`--no-folding` option introduced in Stow 2.2.0.  With earlier versions
+it is instead recommended to stow all packages which share directories
+with this repository as soon as possible.
 
 
 `unfold` utility
