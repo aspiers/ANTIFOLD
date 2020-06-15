@@ -91,8 +91,11 @@ unfold_dir () {
 
 set -e
 
+echo -n "Unfolded" > $ANTIFOLD_ROOT/.git/GITGUI_BCK
+
 for dir in "$@"; do
     unfold_dir "$dir"
+    echo -n " $dir" >> $ANTIFOLD_ROOT/.git/GITGUI_BCK
 done
 
 echo
